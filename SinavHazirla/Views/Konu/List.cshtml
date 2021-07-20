@@ -1,0 +1,63 @@
+﻿@model List<Konu>
+@{
+    ViewBag.Title = "Konu Listesi";
+    var brans = (int)ViewBag.brans;
+    var bransAd = (string)ViewBag.bransAd;
+    var branslar = (List<SelectListItem>)ViewBag.branslar;
+    branslar.Insert(0, new SelectListItem() { Value = "0", Text = "branş seçiniz.." });
+}
+
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+@if (brans != 0) { 
+<a class="btn btn-sm btn-success" href="/konu/edit/0?brans=@(brans)" onclick="yukleniyor()">Yeni Konu ekle</a>
+}
+<form action="/konu/list" method="post" onsubmit="yukleniyor()">
+<div class="row m-3">
+    <div class="col-sm-3">
+            <label class="form-label">Konu listesi gösterilecek branş seçiniz;</label>
+    </div>
+    <div class="col-md-4">
+        @Html.DropDownList("brans",branslar, new { @onchange = "$(this).closest('form').submit()" })
+    </div>
+</div>
+</form>
+@if (brans == 0)
+{
+    <h3 class="text-center text-info m-5">Lütfen branş seçiniz!</h3>
+}
+else
+{
+    <h3>@bransAd Konuları</h3>
+    <table class="table" id="konuListesi">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Branş Adı</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(item.ID)</td>
+                    <td>@(item.Ad)</td>
+                    <td>
+                        <a class="btn btn-sm btn-info" href="/konu/edit/@(item.ID)?brans=@(brans)" onclick="yukleniyor()">Düzenle</a>
+                        <a class="btn btn-sm btn-danger" href="javascript:;" onclick="silmeOnayi(@(item.ID))">Sil</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@section Scripts{
+    <script>
+        function silmeOnayi(t) {
+            soruSor("Emin misiniz?", "Konu silinecek!", () => {
+                yukleniyor();
+                location = "/brans/delete/" + t;
+            });
+        }
+    </script>
+}

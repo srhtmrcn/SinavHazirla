@@ -1,0 +1,16 @@
+﻿@{
+    var p = Hizli.GetPersonel();
+    ViewBag.Title = "Anasayfa";
+}
+<center>
+<h3>Giriş başarılı! Hoş geldiniz @(p.AdSoyad).</h3>
+<p>Lütfen yapmak istediğiniz işlemi seçiniz;</p>
+    <div style="width:300px;">
+        <a class="btn btn-info block m-2" href="/personel/list" onclick="yukleniyor()">Personel listesi</a>
+        <a class="btn btn-info block m-2" href="/brans/list" onclick="yukleniyor()">Branş listesi</a>   
+        <a class="btn btn-info block m-2" href="/konu/list" onclick="yukleniyor()">Konu listesi</a>    
+        <a class="btn btn-info block m-2" href="/soru/list" onclick="yukleniyor()">Soru havuzu</a>       
+        <a class="btn btn-info block m-2" href="/sinav/list" onclick="yukleniyor()">Sınav listesi</a>   
+        <a class="btn btn-info block m-2" href="/personel/oturumuKapat" onclick="yukleniyor()">Oturumu kapat</a>   
+    </div>
+</center>

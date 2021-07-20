@@ -1,0 +1,71 @@
+﻿@model List<SinavDTO>
+@{
+    ViewBag.Title = "Sınav Listesi";
+    var brans = (int)ViewBag.brans;
+    var bransAd = (string)ViewBag.bransAd;
+    var branslar = (List<SelectListItem>)ViewBag.branslar;
+    branslar.Insert(0, new SelectListItem() { Value = "0", Text = "branş seçiniz.." });
+}
+
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+@if (brans != 0)
+{
+    <a class="btn btn-sm btn-success" href="/sinav/edit/0?brans=@(brans)" onclick="yukleniyor()">Yeni Sınav ekle</a>
+}
+<form action="/sinav/list" method="post" onsubmit="yukleniyor()">
+    <div class="row m-3">
+        <div class="col-sm-3">
+            <label class="form-label">Sınav listesi gösterilecek branş seçiniz;</label>
+        </div>
+        <div class="col-md-4">
+            @Html.DropDownList("brans", branslar, new { @onchange = "$(this).closest('form').submit()" })
+        </div>
+    </div>
+</form>
+@if (brans == 0)
+{
+    <h3 class="text-center text-info m-5">Lütfen branş seçiniz!</h3>
+}
+else
+{
+    <h3>@bransAd Sınavları</h3>
+    <table class="table" id="SinavListesi">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tarih</th>
+                <th>Sınav Adı</th>
+                <th>Hazırlayan</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(item.SinavID)</td>
+                    <td>@(item.Tarih.ToString("dd.MM.yyyy HH:mm"))</td>
+                    <td>@(item.SinavAd)</td>
+                    <td>@(item.Hazirayan)</td>
+                    <td>
+                        <a class="btn btn-sm m-1 btn-info" href="/sinav/edit/@(item.SinavID)?brans=@(brans)" onclick="yukleniyor()">Düzenle</a>
+                        <a class="btn btn-sm m-1 btn-success" href="/sinav/ExamQuestions/@(item.SinavID)" onclick="yukleniyor()">Sorular</a>
+                        <a class="btn btn-sm m-1 btn-danger" href="javascript:;" onclick="silmeOnayi(@(item.SinavID))">Sil</a><br />
+                        <a class="btn btn-sm m-1 btn-primary" href="/sinav/GetExam/@(item.SinavID)">Sınav PDF</a>
+                        <a class="btn btn-sm m-1 btn-primary" href="/sinav/GetSolutions/@(item.SinavID)">Cevaplar PDF</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@section Scripts{
+    <script>
+        function silmeOnayi(t) {
+            soruSor("Emin misiniz?", "Sınav silinecek!", () => {
+                yukleniyor();
+                location = "/sinav/delete/" + t;
+            });
+        }
+    </script>
+}

@@ -1,0 +1,176 @@
+﻿@model List<SoruDTO>
+@{
+    ViewBag.Title = "Sınavın Soruları";
+    var sinavID = (int)ViewBag.sinavID;
+    var sinavAd = (string)ViewBag.sinavAd;
+    var personelID = (int)ViewBag.personelID;
+    var bransID = (int)ViewBag.bransID;
+    var bransAd = (string)ViewBag.bransAd;
+    var anahtarlar = (List<string>)ViewBag.anahtarlar;
+    var aktif = Hizli.GetPersonel();
+}
+
+<div class="form-horizontal">
+    <h3><b class="text-info">@(bransAd)</b></h3>
+    <h4><b class="text-info">@(sinavAd)</b></h4>
+    @if (personelID != 0 && personelID != aktif.ID)
+    {
+        <h4 class="text-danger">Bu sınav size ait değil! Şimdilik değişiklik yapmanıza izin veriliyor ancak bu detaya dikkat etmenizde fayda var.</h4>
+        <hr />
+    }
+    <div class="row">
+
+        <div class="col-md-6">
+            <h3 class="text-danger">Soru Ekle</h3>
+            <div class="m-2">
+                <label>Soru  bulmak için anahtar kelime yazın;</label><br />
+                <small class="text-warning">Yazılan tüm anahtar kelimeleri içeren <b>@(bransAd)</b> sorularından bu sınava eklenmemiş olanlar listelenir.</small>
+                <br />
+                <input type="text" class="form-control tagsinput" id="anahtarKelimeler" value="" />
+                <small class="text-info">Sadece soru ekleme sırasında girilen anahtar kelimeler kabul edilir.</small><br />
+                <button type="button" class="btn btn-success" onclick="SoruGetir()">Soru getir</button>
+                <hr />
+                <div id="eklenebilecekSorular"></div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h3 class="text-danger">Ekli sorular</h3>
+            <table class="table" id="EkliSorular">
+                <thead>
+                    <tr>
+                        <th>Soru No</th>
+                        <th>Yazar</th>
+                        <th>Soru Tipi</th>
+                        <th>Anahtarlar</th>
+                        <th>Puan</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr data-soruid="@(item.SoruID)">
+                            <td>
+                                <input type="number" value="@(item.SoruNo)" class="form-control" onchange="soruNumarasiGuncelle(this)" />
+                                ID #@(item.SoruID)
+                            </td>
+                            <td>
+                                @(item.PersonelAd)<br />
+                                <small class="text-info">
+                                    @(item.Tarih.ToString("dd.MM.yyyy HH:mm"))
+                                </small>
+                            </td>
+                            <td>
+                                @if (item.isBoslukDoldurma)
+                                {<span>Boşluk doldurma</span>}
+                                @if (item.isCoktanSecmeli)
+                                {<span>Çoktan seçmeli</span>}
+                                @if (item.isKlasik)
+                                {<span>Klasik soru</span>}
+                                <br />
+                                <small class="text-info">
+                                    @item.KullanimSayisi defa kullanıldı
+                                </small>
+                            </td>
+                            <td class="small">
+                                <ul>
+                                    @foreach (var k in item.AnahtarKelimeler)
+                                    {
+                                        <li>@(k)</li>
+                                    }
+                                </ul>
+                            </td>
+                            <td class="lead text-center">@(item.Puan)</td>
+                            <td>
+                                <button type="button" class="btn btn-xs btn-info" onclick="SoruGovdeGoster(this)">Göster</button>
+                                <button type="button" class="btn btn-xs btn-danger" onclick="SoruyuSinavdanKaldir(this)">Çıkar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+
+
+@section Scripts{
+    <script>
+    $(document).ready(() => {
+        $('input.tagsinput').tagsinput({
+            typeahead: {
+                source: [@(Html.Raw(string.Join(",", anahtarlar.Select(x=>"'"+x+"'").ToList())))]
+            },
+            freeInput: false,
+            confirmKeys: [13, 44],
+            tagClass: "badge bg-info",
+        });
+    });
+
+    function SoruGetir() {
+        var veri = {
+            "id": "@(sinavID)",
+            "brans": "@(bransID)",
+            "csv": $('input.tagsinput').val()
+        };
+        $("#eklenebilecekSorular").html("");
+        yukleniyor();
+        $.post("/sinav/GetQuestionsByKeys", veri).done(d => {
+            yuklendi();
+            $("#eklenebilecekSorular").html(d);
+        }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok", "İnternet erişimi yok veya sunucu cevap vermiyor.", "error"); });
+    }
+    function secBeni(tr) { $(tr).toggleClass("bg-success"); }
+    function SoruGovdeGoster(ths) {
+        if ($("#soruGoster").length) $("#soruGoster").remove();
+        yukleniyor();
+        $.post("/sinav/showQuestion/" + $(ths).closest("tr").attr("data-soruid")).done(d => {
+            yuklendi();
+            $("#modalContainer").html(d);
+            $("#soruGoster").modal();
+        }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok", "İnternet erişimi yok veya sunucu cevap vermiyor.", "error"); });
+    }
+    function SecilenleriSinavaEkle() {
+        var veri = {
+            "id": "@(sinavID)",
+            "qids": []
+        };
+        $("#SoruListesi").find("tr.bg-success").each((i, a) => veri.qids.push($(a).attr("data-soruid") * 1));
+        yukleniyor();
+        $.post("/sinav/UpsertQuesitons", veri).done(d => {
+            if (d.Durum == true) {
+                location.reload();
+            } else {
+                yuklendi();
+                bilgiVer("Dikkat!", d.Mesaj, "info");
+            }
+        }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok", "İnternet erişimi yok veya sunucu cevap vermiyor.", "error"); });
+    }
+    function SoruyuSinavdanKaldir(t) {
+        soruSor("Emin misiniz?", "Soru sınavdan çıkarılacak ama soru havuzunda duracak ve isterseniz yeniden ekleyebilirsiniz.", () => {
+            yukleniyor();
+            $.post("/sinav/RemoveQuestion/", { "id": "@(sinavID)", "qid": $(t).closest("tr").attr("data-soruid") })
+                .done(d => {
+                    yuklendi();
+                    if (d.Durum == true)
+                        $(t).closest("tr").remove();
+                    else
+                        bilgiVer("Dikkat!",d.Mesaj,"error");
+            }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok", "İnternet erişimi yok veya sunucu cevap vermiyor.", "error"); });
+        });
+    }
+    function soruNumarasiGuncelle(t) {
+        yukleniyor();
+        $.post("/sinav/SetQuestionNumber/", { "id": "@(sinavID)", "qid": $(t).closest("tr").attr("data-soruid"),"qnumber":$(t).val() })
+            .done(d => {
+                yuklendi();
+                if (d.Durum != true)
+                    bilgiVer("Dikkat!",d.Mesaj,"error");
+        }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok", "İnternet erişimi yok veya sunucu cevap vermiyor.", "error"); });
+    }
+    </script>
+}

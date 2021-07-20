@@ -1,0 +1,65 @@
+﻿@{
+    Layout = "~/Views/Shared/_A4Layout.cshtml";
+    var id = (int)ViewBag.id;
+    var isCevapAnahtari = (bool)ViewBag.isCevapAnahtari;
+
+    var db = new DatabaseContext();
+    var sinav = db.Sinav.Where(x => x.ID == id)
+                    .Select(x => new
+                    {
+                        BransAd = x.Brans.Ad,
+                        x.Ad,
+                        x.Aciklama,
+
+                        Sorular = x.SinavSorular.OrderBy(ss => ss.SoruNo)
+                                    .Select(ss => new
+                                    {
+                                        ss.SoruNo,
+                                        ss.Soru.isBoslukDoldurma,
+                                        ss.Soru.isCoktanSecmeli,
+                                        ss.Soru.isKlasik,
+                                        ss.Soru.SoruMetni,
+                                        ss.Soru.SoruSecenekler
+                                    }).ToList()
+                    }).FirstOrDefault();
+    if (sinav == null)
+    {
+        <h1>İşlem yapmak istediğiniz sınav bulunamadı!</h1>
+        return;
+    }
+    ViewBag.Title = sinav.Ad;
+}
+<center>
+    <h3>@sinav.BransAd</h3>
+    <h4>@sinav.Ad</h4>
+    @if (isCevapAnahtari)
+    {
+        <h3 style="color:red;">- CEVAP ANAHTARI -</h3>
+    }
+</center>
+<div class="m-3">
+    @Html.Raw(sinav.Aciklama)
+</div>
+@foreach (var item in sinav.Sorular)
+{
+    <div class="m-2">&nbsp;</div>
+    <div class="row clearfix">
+        <div class="lead text-danger m-2" style="width:50px;overflow:hidden!important;float:left;">@item.SoruNo .</div>
+        <div class="m-2" style="width: auto; float: left;">
+            @Html.Raw(item.SoruMetni)
+            <div class="m-1">&nbsp;</div>
+            @if (item.isCoktanSecmeli || isCevapAnahtari)
+            {
+                foreach (var sc in item.SoruSecenekler)
+                {
+                        if (isCevapAnahtari && sc.Puan > 0)
+                        {
+                            <b style="color:red;float:left;"> (@sc.Puan puan) </b>
+                        }
+                        @Html.Raw(sc.Metin)
+                    <br />
+                }
+            }
+        </div>
+    </div>
+}

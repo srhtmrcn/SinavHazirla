@@ -1,0 +1,250 @@
+﻿@model SinavHazirla.Soru
+@{
+    ViewBag.Title = "Soru Kaydet";
+    if (Model == null)
+    {
+        <h1>İşlem yapılacak Soru bulunamadı!</h1>
+        <h3>Lütfen Soru listesini güncelleyip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/soru/list"; }, 3000);
+        </script>
+        return;
+    }
+
+    var bransAd = (string)ViewBag.bransAd;
+    if (string.IsNullOrEmpty(bransAd))
+    {
+        <h1>Soru eklenecek Branş seçilmemiş!</h1>
+        <h3>Lütfen Soru listesinde bir branş seçip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/Soru/list"; }, 3000);
+        </script>
+        return;
+    }
+    var konuAd = (string)ViewBag.konuAd;
+    if (string.IsNullOrEmpty(konuAd))
+    {
+        <h1>Soru eklenecek Konu seçilmemiş!</h1>
+        <h3>Lütfen Soru listesinde bir konu seçip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/soru/list"; }, 3000);
+        </script>
+        return;
+    }
+
+    var aktif = Hizli.GetPersonel();
+}
+<form action="/soru/save" method="post" onsubmit="return soruTipiKontrol()">
+    <div class="form-horizontal">
+        <h3><b class="text-info">@(bransAd)</b></h3>
+        <h4><b class="text-info">@(konuAd)</b></h4>
+        <hr />
+        @if (Model.PersonelID != 0 && Model.PersonelID != aktif.ID)
+        {
+            <h4 class="text-danger">Bu soru size ait değil! Şimdilik değişiklik yapmanıza izin veriliyor ancak bu detaya dikkat etmenizde fayda var.</h4>
+            <hr />
+        }
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.ID)
+        @Html.HiddenFor(model => model.KonuID)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.SoruMetni, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.SoruMetni, new { @style = "width:100%!important;", @rows = 8, @cols = 200, @class = "summernote" })
+            </div>
+        </div>
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group" style="@(Html.Raw(Model.ID==0?"":"display:none;"))">
+            <label class="control-label col-md-2">Soru tipi</label>
+            <small class="text-danger">Soru tipi sadece soru ilk tanımlanırken seçilebilir ve sonradan değiştirilemez!</small>
+            <div class="col-md-10">
+                <button type="button" id="tip1" onclick="SetSoruTipi(this,1)" class="sorutipi btn @(Model.isCoktanSecmeli?"btn-success":"btn-default")">Çoktan seçmeli soru</button>
+                <button type="button" id="tip2" onclick="SetSoruTipi(this,2)" class="sorutipi btn @(Model.isBoslukDoldurma?"btn-success":"btn-default")">Boşluk doldurma sorusu</button>
+                <button type="button" id="tip3" onclick="SetSoruTipi(this,3)" class="sorutipi btn @(Model.isKlasik?"btn-success":"btn-default")">Klasik soru</button>
+            </div>
+        </div>
+        @Html.HiddenFor(model => model.isCoktanSecmeli)
+        @Html.HiddenFor(model => model.isBoslukDoldurma)
+        @Html.HiddenFor(model => model.isKlasik)
+        @Html.HiddenFor(model => model.isSilindi)
+        <div class="form-group m-2">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" class="btn btn-success btn-lg">Soru Kaydet</button>
+                @if (Model.ID == 0)
+                {
+                    <small class="text-danger">Soruyu kaydettikten sonra cevap veya seçenek ekleme fonksiyonları açılacaktır.</small>
+                }
+            </div>
+        </div>
+        @if (Model.ID > 0)
+        {
+            <hr />
+            <div class="m-2">
+                <label class="control-label">Soru anahtar kelimeleri;</label><small class="text-warning">(kelimeleri virgülle ayırarak yazın.)</small><br />
+                <input type="text" class="form-control tagsinput"
+                       value="@(string.Join(",", Model.SoruAnahtarlar.Select(xx=>xx.AnahtarKelime.Kelime).ToList()))" />
+            </div>
+            <hr />
+            <div id="secenekTutucu">
+                @foreach (var item in Model.SoruSecenekler)
+                {
+                    <div data-secid="@(item.ID)" class="alert m-2">
+                        <h3>Seçenek</h3>
+                        <textarea class="secenek">@Html.Raw(item.Metin)</textarea>
+                        <input type="number" class="puan" min="0" max="100" value="@(item.Puan)" />
+                        <button type="button" class="btn btn-sm btn-success" onclick="SecenekKaydet(this)">Seçenek Kaydet</button>
+                        @if (Model.isCoktanSecmeli || Model.isBoslukDoldurma)
+                    {
+                        <button type="button" class="btn btn-sm btn-danger" onclick="SecenekSil(this)">Seçenek Sil</button>
+                    }
+                    </div>
+                }
+            </div>
+            if (Model.isCoktanSecmeli)
+            {
+                <ul class="text-info">
+                    <li>Çoktan seçmeli sorularda istediğiniz kadar seçenek ekleyebilirsiniz.</li>
+                    <li>En az bir seçenek doğru olmalı.</li>
+                    <li>Gerektiğinde birden fazla seçenek doğru olarak işaretlenebilir.</li>
+                    <li>Bir seçeneğe SIFIR puan verirseniz o seçenek YANLIŞ olarak kabul edilir.</li>
+                    <li>Puanı sıfırdan büyük her hangi bir seçenek işaretlendiğinde soru doğru yapılmış sayılır.</li>
+                    <li>İşaretlenen seçeneklerin puanları farklı olabilir.</li>
+                    <li>Sorunun puanı en yüksek puan yazılan seçenekteki puandır.</li>
+                </ul>
+            }
+            else if (Model.isBoslukDoldurma)
+            {
+                <ul class="text-info">
+                    <li>Boşluk doldurma sorularında bir soruda birden fazla boşluk için bilgi yazılması istenebilir.</li>
+                    <li>Her bir boşluk için yeni bir alan ekleyin ve o boşluğa yazılan bilgi için kazanılacak puanı belirleyin.</li>
+                    <li>Sorunun puanı tüm boşluklar için açılan alanların paunlarının toplamıdır.</li>
+                    <li>Bir boşluğa yazılabilecek alternatif cevapları aynı alan içinde virgül ile ayırarak yazın.</li>
+                </ul>
+            }
+            else
+            {
+                <ul class="text-info">
+                    <li>Klasik sorularda sadece bir cevap giriş alanı bulunabilir ve bu alana sorunun cevabı yazılmalıdır.</li>
+                    <li>Soruyu tam doğru olarak çözen kişinin bu sorudan alacağı puanı belirleyin.</li>
+                </ul>
+            }
+            <p class="text-success">Bir sorunun puanını; sorunun kullanıldığı sınavda alınabilecek tam puanın 100 olduğunu kabul ederek sorunun zorluk seviyesine göre belirleyiniz.</p>
+
+            if (!Model.isKlasik)
+            {
+                <button type="button" class="btn btn-info btn-lg" onclick="YeniSecenekEkle()">Yeni seçenek ekle</button>
+            }
+        }
+
+    </div>
+</form>
+<hr />
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+@if (Model.ID > 0)
+{
+<a class="btn btn-sm btn-primary" href="/soru/list?brans=@(Model.Konu.BransID)&konu=@(Model.KonuID)" onclick="yukleniyor()">Soru listesi</a>
+}
+@section Scripts{
+    <script>
+    var soruTipiSecildi = "@(Model.ID==0?0:1)";
+    function SetSoruTipi(ths,x) {
+        $(".sorutipi").removeClass("btn-success")
+        $(".sorutipi").addClass("btn-default");
+        $("[name='isCoktanSecmeli']").val(x == 1);
+        $("[name='isBoslukDoldurma']").val(x == 2);
+        $("[name='isKlasik']").val(x == 3);
+        $(ths).addClass("btn-success")
+        $(ths).removeClass("btn-default");
+        soruTipiSecildi = true;
+    }
+    function soruTipiKontrol() {
+        if (!soruTipiSecildi||soruTipiSecildi=="0") {
+            bilgiVer("Soru tipi seçilmemiş","Lütfen soru tipini seçin ve tekrar deneyin.","info");
+            return false;
+        }
+        yukleniyor();
+        return true;
+    }
+    function YeniSecenekEkle() {
+        $("#secenekTutucu").append('<div data-secid="0" class="alert m-2"><h3>Seçenek</h3><textarea class="secenek"></textarea>\
+    <input type="number" class="puan" min="0" max="100" value="" />\
+    <button type="button" class="btn btn-sm btn-success" onclick="SecenekKaydet(this)">Seçenek Kaydet</button></div>@(Model.isCoktanSecmeli || Model.isBoslukDoldurma ?
+        "<button type='button' class='btn btn-sm btn-danger' onclick='SecenekSil(this)'>Seçenek Sil</button>":"")');
+        summerHazirla(".secenek:last", 100);
+    }
+    function SecenekKaydet(ths) {
+        ths = $(ths).closest("[data-secid]");
+        var veri = {
+            "ID": $(ths).attr("data-secid"),
+            "SoruID": "@(Model.ID)",
+            "Metin": $(ths).find("textarea:first").val(),
+            "Puan": $(ths).find("input.puan:first").val(),
+        };
+        yukleniyor();
+        $.post("/soru/upsertOption", veri).done(d => {
+            yuklendi();
+            if (d.Durum == true) {
+                $(ths).attr("data-secid", d.Mesaj);
+                bilgiVer("Kayıt başarılı!", "", "success");
+            } else
+                bilgiVer("İşlem durduruldu!", d.Mesaj, "error");
+        }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok","İnternet erişimi yok veya sunucu cevap vermiyor.","error"); });
+    }
+    function etiketleriKaydet(ths) {
+        var veri = {
+            "id": "@(Model.ID)",
+            "csv": $('input.tagsinput').val(),
+        };
+        yukleniyor();
+        $.post("/soru/SetQuestionKeys", veri).done(d => {
+            yuklendi();
+            if (d.Durum == true) {
+                //bilgiVer("Kayıt başarılı!", "Soru anahtar kelimeleri kayıt edildi.", "success");
+            } else
+                bilgiVer("İşlem durduruldu!", d.Mesaj, "error");
+        }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok","İnternet erişimi yok veya sunucu cevap vermiyor.","error"); });
+    }
+    function SecenekSil(ths) {
+        var dv = $(ths).closest("[data-secid]");
+        soruSor("Emin misiniz?", "Seçenek silinecek!", () => {
+            if ($(dv).attr("data-secid") == "0") {
+                $(dv).remove();
+                return;
+            }
+            yukleniyor();
+            $.post("/soru/RemoveOption/" + $(dv).attr("data-secid")).done(d => {
+                yuklendi();
+                if (d.Durum == true) {
+                    $(dv).remove();
+                } else
+                    bilgiVer("İşlem durduruldu!", d.Mesaj, "error");
+            }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok","İnternet erişimi yok veya sunucu cevap vermiyor.","error"); });
+        });
+    }
+    $(document).ready(() => {
+        summerHazirla(".secenek", 100);
+        summerHazirla(".summernote", 300);
+
+        $('input.tagsinput').tagsinput({
+            trimValue: true,
+            maxChars: 15,
+            maxTags: 5,
+            confirmKeys: [13, 44],
+            tagClass:"badge bg-info",
+        });
+        $('input.tagsinput').change(etiketleriKaydet);
+    });
+    function summerHazirla(x,y) {
+        $(x).summernote({
+            disableDragAndDrop: true,
+            width: "100% !important",
+            height: y,
+            lang: 'tr-TR',
+            focus: true,
+        });
+        $('.dropdown-toggle').dropdown();
+    }
+    </script>
+}

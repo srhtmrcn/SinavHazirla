@@ -1,0 +1,42 @@
+﻿@model List<Personel>
+@{ 
+    ViewBag.Title = "Perosnel Listesi";
+}
+
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+<a class="btn btn-sm btn-success" href="/personel/edit" onclick="yukleniyor()">Yeni personel ekle</a>
+
+<table class="table" id="personelListesi">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Ad Soyad</th>
+            <th>e-Mail</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(item.ID)</td>
+                <td>@(item.AdSoyad)</td>
+                <td>@(item.Email)</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/personel/edit/@(item.ID)" onclick="yukleniyor()">Düzenle</a>
+                    <a class="btn btn-sm btn-danger" href="javascript:;" onclick="silmeOnayi(@(item.ID))">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts{
+<script>
+    function silmeOnayi(t) {
+        soruSor("Emin misiniz?", "Personel silinecek!", () => {
+            yukleniyor();
+            location = "/personel/delete/" + t;
+        });
+    }
+</script>    
+}

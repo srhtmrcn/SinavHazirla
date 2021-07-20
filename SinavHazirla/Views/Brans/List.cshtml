@@ -1,0 +1,40 @@
+﻿@model List<Brans>
+@{
+    ViewBag.Title = "Branş Listesi";
+}
+
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+<a class="btn btn-sm btn-success" href="/brans/edit" onclick="yukleniyor()">Yeni Branş ekle</a>
+
+<table class="table" id="bransListesi">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Branş Adı</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(item.ID)</td>
+                <td>@(item.Ad)</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/brans/edit/@(item.ID)" onclick="yukleniyor()">Düzenle</a>
+                    <a class="btn btn-sm btn-danger" href="javascript:;" onclick="silmeOnayi(@(item.ID))">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts{
+    <script>
+    function silmeOnayi(t) {
+        soruSor("Emin misiniz?", "Branş silinecek!", () => {
+            yukleniyor();
+            location = "/brans/delete/" + t;
+        });
+    }
+    </script>
+}

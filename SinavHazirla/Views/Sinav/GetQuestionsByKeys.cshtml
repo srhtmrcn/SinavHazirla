@@ -1,0 +1,54 @@
+﻿@model List<SoruDTO>
+@{ 
+    Layout = null;
+}
+<table class="table" id="SoruListesi">
+    <thead>
+        <tr>
+            <th>Yazar</th>
+            <th>Soru Tipi</th>
+            <th>Anahtarlar</th>
+            <th>Puan</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr style="cursor:pointer;" onclick="secBeni(this)" data-soruid="@(item.SoruID)">
+                <td>
+                    @(item.PersonelAd)<br />
+                    <small class="text-info">
+                        @(item.Tarih.ToString("dd.MM.yyyy HH:mm"))
+                    </small>
+                </td>
+                <td>
+                    @if (item.isBoslukDoldurma)
+                    {<span>Boşluk doldurma</span>}
+                    @if (item.isCoktanSecmeli)
+                    {<span>Çoktan seçmeli</span>}
+                    @if (item.isKlasik)
+                    {<span>Klasik soru</span>}
+                    <br />
+                    <small class="text-info">
+                    @item.KullanimSayisi defa kullanıldı
+                    </small>
+                </td>
+                <td class="small">
+                    <ul>
+                        @foreach (var k in item.AnahtarKelimeler)
+                        {
+                            <li>@(k)</li>
+                        }
+                    </ul>
+                </td>
+                <td class="lead text-center">@(item.Puan)</td>
+                <td>
+                    <button type="button" class="btn btn-xs btn-info" onclick="SoruGovdeGoster(this)">Göster</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<b class="text-danger">Kullanmak istediğiniz soruyu işaretlemek için tıklayın!</b>
+<button type="button" class="btn btn-success pull-right" onclick="SecilenleriSinavaEkle()">Soruları sınava ekle</button>

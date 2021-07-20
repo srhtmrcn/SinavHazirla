@@ -1,0 +1,102 @@
+﻿@model List<SoruDTO>
+@{
+    ViewBag.Title = "Soru Havuzu";
+
+    var brans = (int)ViewBag.brans;
+    var bransAd = (string)ViewBag.bransAd;
+    var branslar = (List<SelectListItem>)ViewBag.branslar;
+
+    branslar.Insert(0, new SelectListItem() { Value = "0", Text = "branş seçiniz.." });
+
+    var konu = (int)ViewBag.konu;
+    var konuAd = (string)ViewBag.konuAd;
+    var konular = (List<SelectListItem>)ViewBag.konular;
+    konular.Insert(0, new SelectListItem() { Value = "0", Text = "konu seçiniz.." });
+}
+
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+@if (brans != 0 && konu != 0)
+{
+    <a class="btn btn-sm btn-success" href="/soru/edit/0?konu=@(konu)" onclick="yukleniyor()">Yeni Soru ekle</a>
+}
+<form action="/soru/list" method="post" onsubmit="yukleniyor()">
+    <div class="row m-3">
+        <div class="col-sm-3">
+            <label class="form-label">Soru listesi gösterilecek branşı seçiniz;</label>
+        </div>
+        <div class="col-md-4">
+            @Html.DropDownList("brans", branslar, new { @onchange = "$(this).closest('form').submit()" })
+        </div>
+    </div>
+    <div class="row m-3">
+        <div class="col-sm-3">
+            <label class="form-label">Soru listesi gösterilecek konuyu seçiniz;</label>
+        </div>
+        <div class="col-md-4">
+            @Html.DropDownList("konu", konular, new { @onchange = "$(this).closest('form').submit()" })
+        </div>
+    </div>
+</form>
+@if (brans == 0 || konu == 0)
+{
+    <h3 class="text-center text-info m-5">Lütfen branş ve konu seçiniz!</h3>
+}
+else
+{
+    <hr />
+    <h3>@bransAd Branşı</h3>
+    <h3>@konuAd Soruları</h3>
+    <table class="table" id="SoruListesi">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tarih</th>
+                <th>Yazar</th>
+                <th>Soru Tipi</th>
+                <th>Anahtarlar</th>
+                <th>Puan</th>
+                <th>Kullanım</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(item.SoruID)</td>
+                    <td>@(item.Tarih.ToString("dd.MM.yyyy HH:mm"))</td>
+                    <td>@(item.PersonelAd)</td>
+                    <td>
+                        @if(item.isBoslukDoldurma){ <span>Boşluk doldurma</span> }
+                        @if(item.isCoktanSecmeli) { <span>Çoktan seçmeli</span> }
+                        @if(item.isKlasik)        { <span>Klasik soru</span> }
+                    </td>
+                    <td class="small">
+                        <ul>
+                            @foreach (var k in item.AnahtarKelimeler)
+                            {
+                                <li>@(k)</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>@(item.Puan)</td>
+                    <td>@(item.KullanimSayisi)</td>
+                    <td>
+                        <a class="btn btn-sm btn-info" href="/Soru/edit/@(item.SoruID)?konu=@(konu)" onclick="yukleniyor()">Düzenle</a>
+                        <a class="btn btn-sm btn-danger" href="javascript:;" onclick="silmeOnayi(@(item.SoruID))">Sil</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@section Scripts{
+    <script>
+        function silmeOnayi(t) {
+            soruSor("Emin misiniz?", "Soru silinecek!", () => {
+                yukleniyor();
+                location = "/soru/delete/" + t;
+            });
+        }
+    </script>
+}

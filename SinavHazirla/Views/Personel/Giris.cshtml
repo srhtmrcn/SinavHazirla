@@ -1,0 +1,17 @@
+﻿@{ 
+    ViewBag.Title = "Giriş";
+}
+<div class="row m-3">
+    <div class="col-md-4 col-sm-2">&nbsp;</div>
+    <div class="col-md-4 col-sm-8" style="border:1px solid black;padding:20px;">
+        <form class="form" method="post" action="/personel/oturumac">
+
+            <label class="form-label">Kullanıcı adınız</label>
+            <input type="text" class="form-control" value="" id="email" name="email" />
+            <label class="form-label">Parolanız</label>
+            <input type="password" class="form-control" value="" id="parola" name="parola" />
+            <button type="submit" class="btn btn-success m-3" onclick="yukleniyor()">Giriş yap!</button>
+        </form>
+    </div>
+    <div class="col-lg-5 col-md-4 col-sm-2">&nbsp;</div>
+</div>

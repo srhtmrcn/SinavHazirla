@@ -1,0 +1,74 @@
+﻿@model SinavHazirla.Sinav
+@{
+    ViewBag.Title = "Sınav Kaydet";
+    if (Model == null)
+    {
+        <h1>İşlem yapılacak Sınav bulunamadı!</h1>
+        <h3>Lütfen Sınav listesini güncelleyip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/sinav/list"; }, 3000);
+        </script>
+        return;
+    }
+
+    var bransAd = (string)ViewBag.bransAd;
+    if (string.IsNullOrEmpty(bransAd))
+    {
+        <h1>Sınav eklenecek Branş seçilmemiş!</h1>
+        <h3>Lütfen sınav listesinde bir branş seçip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/sinav/list"; }, 3000);
+        </script>
+        return;
+    }
+
+}
+<form action="/sinav/save" method="post" onsubmit="yukleniyor()">
+    <div class="form-horizontal">
+        <h4><b class="text-info">@(bransAd)</b> için Sınav Kaydet</h4>
+        <hr />
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.ID)
+        @Html.HiddenFor(model => model.BransID)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Ad, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Ad, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Ad, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group">
+            <label class = "control-label col-md-2">Sınav açıklamaları</label> <small class="text-warning">Bu kısımda yazılacak bilgi sınav çıktısına eklenecektir!</small>
+            <div class="col-md-10">
+                <textarea id="Aciklama" name="Aciklama" style = "width:100%!important;" rows = 8 cols = 200 class = "summernote">@Html.Raw(Model.Aciklama)</textarea>
+            </div>
+        </div>
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Kaydet" class="btn btn-success" />
+            </div>
+        </div>
+    </div>
+</form>
+<hr />
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
+
+@section Scripts{
+<script>
+    $(document).ready(() => {
+        $('.summernote').summernote({
+            disableDragAndDrop: true,
+            width: "100% !important",
+            height: 300,
+            lang: 'tr-TR',
+            focus: true,
+        });
+        $('.dropdown-toggle').dropdown();
+    });
+</script>
+
+}

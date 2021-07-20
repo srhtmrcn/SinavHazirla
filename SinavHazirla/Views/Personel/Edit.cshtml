@@ -1,0 +1,55 @@
+﻿@model SinavHazirla.Personel
+@{
+    ViewBag.Title = "Personel Kaydet";
+    if (Model == null)
+    {
+        <h1>İşlem yapılacak personel bulunamadı!</h1>
+        <h3>Lütfen personel listesini güncelleyip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/personel/list"; }, 3000);
+        </script>
+        return;
+    }
+}
+<form action="/personel/save" method="post" onsubmit="yukleniyor()">
+    <div class="form-horizontal">
+        <h4>Personel Kaydet</h4>
+        <hr />
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.ID)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.AdSoyad, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.AdSoyad, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.AdSoyad, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Parola, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Parola, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Parola, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @Html.HiddenFor(model => model.isSilindi)
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Kaydet" class="btn btn-success" />
+            </div>
+        </div>
+    </div>
+</form>
+<hr />
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>

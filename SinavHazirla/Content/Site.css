@@ -1,0 +1,27 @@
+﻿body {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-top: 40px;
+}
+
+.bootstrap-tagsinput {
+    width: 100%;
+}
+.m-1 { margin:5px;}
+.m-2 { margin:10px;}
+.m-3 { margin:15px;}
+.m-4 { margin:20px;}
+.m-5 { margin:25px;}
+.p-1 { padding:5px;}
+.p-2 { padding:10px;}
+.p-3 { padding:15px;}
+.p-4 { padding:20px;}
+.p-5 { padding:25px;}
+
+.block {display:block!important;}

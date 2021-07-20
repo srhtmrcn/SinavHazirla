@@ -1,0 +1,39 @@
+﻿@model SinavHazirla.Brans
+@{
+    ViewBag.Title = "Branş Kaydet";
+    if (Model == null)
+    {
+        <h1>İşlem yapılacak Branş bulunamadı!</h1>
+        <h3>Lütfen Branş listesini güncelleyip tekrar deneyin.</h3>
+        <script>
+            setTimeout(() => { yukleniyor(); location = "/brans/list"; }, 3000);
+        </script>
+        return;
+    }
+}
+<form action="/brans/save" method="post" onsubmit="yukleniyor()">
+    <div class="form-horizontal">
+        <h4>Branş Kaydet</h4>
+        <hr />
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.ID)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Ad, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Ad, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Ad, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @Html.HiddenFor(model => model.isSilindi)
+        <span class="m-1">&nbsp;</span>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Kaydet" class="btn btn-success" />
+            </div>
+        </div>
+    </div>
+</form>
+<hr />
+<a class="btn btn-sm btn-primary" href="/personel/anasayfa" onclick="yukleniyor()">Anasayfa</a>
