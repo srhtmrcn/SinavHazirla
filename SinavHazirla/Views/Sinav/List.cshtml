@@ -50,9 +50,12 @@ else
                     <td>
                         <a class="btn btn-sm m-1 btn-info" href="/sinav/edit/@(item.SinavID)?brans=@(brans)" onclick="yukleniyor()">Düzenle</a>
                         <a class="btn btn-sm m-1 btn-success" href="/sinav/ExamQuestions/@(item.SinavID)" onclick="yukleniyor()">Sorular</a>
+                        <button type="button" class="btn btn-sm m-1 btn-warning" onclick="AckGoster(@(item.SinavID))">Açıklamalar</button>
                         <a class="btn btn-sm m-1 btn-danger" href="javascript:;" onclick="silmeOnayi(@(item.SinavID))">Sil</a><br />
-                        <a class="btn btn-sm m-1 btn-primary" href="/sinav/GetExam/@(item.SinavID)">Sınav PDF</a>
-                        <a class="btn btn-sm m-1 btn-primary" href="/sinav/GetSolutions/@(item.SinavID)">Cevaplar PDF</a>
+                        <a class="btn btn-sm m-1 btn-primary" href="/sinav/GetPDF/@(item.SinavID)">Sınav Html</a>
+                        <a class="btn btn-sm m-1 btn-danger" href="/sinav/GetExam/@(item.SinavID)">Sınav PDF</a>
+                        <a class="btn btn-sm m-1 btn-primary" href="/sinav/GetPDF/@(item.SinavID)?isCevapAnahtari=true">Cevaplar Html</a>
+                        <a class="btn btn-sm m-1 btn-danger" href="/sinav/GetSolutions/@(item.SinavID)">Cevaplar PDF</a>
                     </td>
                 </tr>
             }
@@ -66,6 +69,14 @@ else
                 yukleniyor();
                 location = "/sinav/delete/" + t;
             });
+        }
+        function AckGoster(id) {
+            yukleniyor();
+            $.post("/sinav/ShowDescriptions/" + id).done(d => {
+                yuklendi();
+                $("#modalContainer").html(d);
+                $("#ackGoster").modal();
+            }).fail(x => { yuklendi(); bilgiVer("Bağlantı yok", "İnternet erişimi yok veya sunucu cevap vermiyor.", "error"); });
         }
     </script>
 }

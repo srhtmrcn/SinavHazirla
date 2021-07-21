@@ -217,6 +217,7 @@ namespace SinavHazirla.Controllers
 
                 if (sss.Count() > 0)
                 {
+                    SinavAciklamaEkle(id, "Sınava " + sss.Count() + " soru eklendi.");
                     db.SinavSoru.AddRange(sss);
                     db.SaveChanges();
                 }
@@ -235,6 +236,7 @@ namespace SinavHazirla.Controllers
 
             if (q != null)
             {
+                SinavAciklamaEkle(id, "Sınavdan " + q.SoruID + " ID'li soru çıkarıldı.");
                 db.SinavSoru.Remove(q);
                 db.SaveChanges();
             }
@@ -259,23 +261,53 @@ namespace SinavHazirla.Controllers
 
         #endregion
 
-        public PartialViewResult ShowQuestion(int id, bool inmodal = true)
+        public PartialViewResult ShowQuestion(int id)
         {
             ViewBag.id = id;
-            ViewBag.inmodal = inmodal;
             return PartialView();
         }
+
+        public JsonResult AddDescription(int id, string aciklama)
+        {
+            SinavAciklamaEkle(id, aciklama);
+            return Hizli.Jr(true,"");
+        }
+
+        private void SinavAciklamaEkle(int sinavID, string aciklama)
+        {
+            var aktif = Hizli.GetPersonel();
+            var ack = new SinavAciklama()
+            {
+                PersonelID = aktif.ID,
+                SinavID = sinavID,
+                Aciklama = aciklama,
+                Tarih = DateTime.Now
+            };
+            var db = new DatabaseContext();
+            db.SinavAciklama.Add(ack);
+            db.SaveChanges();
+        }
+
+
+        public PartialViewResult ShowDescriptions(int id)
+        {
+            ViewBag.id = id;
+            return PartialView();
+        }
+
 
         #region Sınav Yazdırma İşlemleri
 
 
         public ActionResult GetExam(int id)
         {
+            SinavAciklamaEkle(id, "Sınav PDF indirildi");
             return new ActionAsPdf("GetPDF", new { id, isCevapAnahtari = false }) { FileName = "Sinav.pdf" };
         }
 
         public ActionResult GetSolutions(int id)
         {
+            SinavAciklamaEkle(id, "Cevap Anahtarı PDF indirildi");
             return new ActionAsPdf("GetPDF", new { id, isCevapAnahtari = true }) { FileName = "Cevaplar.pdf" };
         }
 

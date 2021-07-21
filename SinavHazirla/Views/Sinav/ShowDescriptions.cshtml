@@ -1,0 +1,47 @@
+﻿@{
+    var id = (int)ViewBag.id;
+
+    var db = new DatabaseContext();
+
+    var acks = db.SinavAciklama.Where(x => x.ID == id)
+                 .Select(x=> new { 
+                    x.Tarih,
+                    x.Personel.AdSoyad,
+                    x.Aciklama
+                 })
+                 .ToList();
+}
+<div id="ackGoster" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sınav açıklamaları</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Personel</th>
+                            <th>Açıklama</th>
+                        </tr>
+                    </thead>
+                @foreach (var item in acks)
+                {
+                    <tr>
+                        <td>@(item.Tarih.ToString("dd.MM.yyyy HH:mm"))</td>
+                        <td>@(item.AdSoyad)</td>
+                        <td>@(item.Aciklama)</td>
+                    </tr>
+                }
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>

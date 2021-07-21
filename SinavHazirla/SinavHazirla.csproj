@@ -166,6 +166,7 @@
     <Content Include="Views\Sinav\GetSolutions1.cshtml" />
     <Content Include="Views\Shared\_A4Layout.cshtml" />
     <None Include="Properties\PublishProfiles\sinavhazirla - Web Deploy.pubxml" />
+    <Content Include="Views\Sinav\ShowDescriptions.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
